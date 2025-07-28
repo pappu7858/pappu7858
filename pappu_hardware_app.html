@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Pappu Hardware</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f2f2f2;
+    }
+    #splash {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      z-index: 1000;
+    }
+    header {
+      background: #333;
+      color: white;
+      padding: 15px;
+      text-align: center;
+    }
+    .logo {
+      width: 60px;
+      border-radius: 8px;
+    }
+    .container {
+      padding: 10px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 10px;
+    }
+    .product {
+      background: white;
+      padding: 10px;
+      border-radius: 8px;
+      position: relative;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .product img {
+      width: 100%;
+      height: auto;
+      max-height: 200px;
+      object-fit: cover;
+      border-radius: 4px;
+    }
+    .product h3 {
+      margin: 10px 0 5px;
+      font-size: 18px;
+    }
+    .product p {
+      color: green;
+      font-weight: bold;
+    }
+    .delete-btn {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      background: red;
+      color: white;
+      border: none;
+      padding: 4px 6px;
+      border-radius: 50%;
+      display: none;
+      cursor: pointer;
+    }
+    #loginSection, #formSection {
+      background: white;
+      margin: 10px;
+      padding: 10px;
+      border-radius: 8px;
+    }
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      font-size: 16px;
+    }
+    #backBtn {
+      display: none;
+      margin: 10px;
+      padding: 8px 12px;
+      background: #555;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+      width: 80px;
+    }
+  </style>
+</head>
+<body>
+<div id="splash">
+  <img src="logo.jpg" alt="Logo" class="logo">
+  <h2>Welcome to Pappu Hardware</h2>
+</div>
+
+<header>
+  <img src="logo.jpg" alt="Logo" class="logo">
+  <h1>Pappu Hardware</h1>
+  <p>Owner: Rajendra Kumar Pandit | 📞 6299196621</p>
+</header>
+
+<div id="backBtn" onclick="exitAdmin()">⬅ Back</div>
+
+<div id="loginSection">
+  <h3>🔒 Admin Login</h3>
+  <input type="password" id="adminPassword" placeholder="Enter Admin Password">
+  <button onclick="checkLogin()">Login</button>
+</div>
+
+<div id="formSection" style="display:none">
+  <h3>➕ Add Product</h3>
+  <input type="text" id="productName" placeholder="Product Name">
+  <input type="text" id="productPrice" placeholder="Product Price">
+  <input type="file" id="productImage" accept="image/*">
+  <button onclick="addProduct()">Add Product</button>
+</div>
+
+<div class="container" id="productList"></div>
+
+<script>
+  const products = JSON.parse(localStorage.getItem("products")) || [];
+  let isAdmin = false;
+
+  function renderProducts() {
+    const container = document.getElementById("productList");
+    container.innerHTML = "";
+    products.forEach((p, i) => {
+      container.innerHTML += `
+        <div class="product">
+          <button class="delete-btn" onclick="deleteProduct(${i})">❌</button>
+          <img src="${p.image}" alt="${p.name}">
+          <h3>${p.name}</h3>
+          <p>₹${p.price}</p>
+        </div>`;
+    });
+    toggleDeleteButtons();
+  }
+
+  function toggleDeleteButtons() {
+    document.querySelectorAll(".delete-btn").forEach(btn => {
+      btn.style.display = isAdmin ? "block" : "none";
+    });
+  }
+
+  function checkLogin() {
+    const pass = document.getElementById("adminPassword").value;
+    if (pass === "pappukumar") {
+      isAdmin = true;
+      document.getElementById("loginSection").style.display = "none";
+      document.getElementById("formSection").style.display = "block";
+      document.getElementById("backBtn").style.display = "block";
+      toggleDeleteButtons();
+    } else {
+      alert("Wrong Password");
+    }
+  }
+
+  function exitAdmin() {
+    isAdmin = false;
+    document.getElementById("loginSection").style.display = "block";
+    document.getElementById("formSection").style.display = "none";
+    document.getElementById("backBtn").style.display = "none";
+    toggleDeleteButtons();
+  }
+
+  function addProduct() {
+    const name = document.getElementById("productName").value;
+    const price = document.getElementById("productPrice").value;
+    const imageFile = document.getElementById("productImage").files[0];
+
+    if (!imageFile) {
+      alert("Please select an image");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const product = {
+        name,
+        price,
+        image: e.target.result
+      };
+      products.push(product);
+      localStorage.setItem("products", JSON.stringify(products));
+      renderProducts();
+      document.getElementById("productName").value = "";
+      document.getElementById("productPrice").value = "";
+      document.getElementById("productImage").value = "";
+    };
+    reader.readAsDataURL(imageFile);
+  }
+
+  function deleteProduct(index) {
+    if (isAdmin) {
+      products.splice(index, 1);
+      localStorage.setItem("products", JSON.stringify(products));
+      renderProducts();
+    }
+  }
+
+  window.onload = function() {
+    setTimeout(() => {
+      document.getElementById("splash").style.display = "none";
+      renderProducts();
+    }, 2000);
+  };
+</script>
+</body>
+</html>
